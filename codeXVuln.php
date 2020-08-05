@@ -15,7 +15,7 @@ $dirAsal = $dir;
 $dirPecah = explode('/', $dirAsal);
 $linkTag = '';
 $link = '';
-print_r($dirPecah);
+// print_r($dirPecah);
 for($i = 0; $i < count($dirPecah); $i++){
 	if($dirPecah[$i] == "." || $dirPecah[$i] == "" || $dirPecah[$i] == null){
 		unset($dirPecah[$i]);
@@ -24,13 +24,11 @@ for($i = 0; $i < count($dirPecah); $i++){
 		$linkTag .= '<a href="?dir='.$link.'">'.$dirPecah[$i].'</a>/';
 	}
 }
-print_r($dirPecah);
+// print_r($dirPecah);
 $dir = join("/",$dirPecah);
 unset($dirPecah[count($dirPecah)-1]);
 $dirBack = join("/",$dirPecah);
 
-// print_r($linkTag);
-// print_r(@$_POST);
 
 if(@$_POST['action']){
     if($_POST['action'] == 'setFile'){
