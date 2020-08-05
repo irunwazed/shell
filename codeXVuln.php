@@ -1,9 +1,35 @@
 <?php
 
-$dir = "./";
+
+
+
+$dir = getcwd();
+$dir = explode('\\', $dir);
+$dir = join("/",$dir);
+print_r($dir);
 if(@$_GET['dir']){
     $dir = $_GET['dir'];
 }
+
+$dirAsal = $dir;
+$dirPecah = explode('/', $dirAsal);
+$linkTag = '';
+$link = '';
+print_r($dirPecah);
+for($i = 0; $i < count($dirPecah); $i++){
+	if($dirPecah[$i] == "." || $dirPecah[$i] == "" || $dirPecah[$i] == null){
+		unset($dirPecah[$i]);
+	}else{
+		$link .= "/".$dirPecah[$i];
+		$linkTag .= '<a href="?dir='.$link.'">'.$dirPecah[$i].'</a>/';
+	}
+}
+print_r($dirPecah);
+$dir = join("/",$dirPecah);
+unset($dirPecah[count($dirPecah)-1]);
+$dirBack = join("/",$dirPecah);
+
+// print_r($linkTag);
 // print_r(@$_POST);
 
 if(@$_POST['action']){
@@ -89,11 +115,12 @@ function urutDirectory($path, $array){
 	asort($array);
 	foreach ($array as $row) {
 		$temp = $path."/".$row;
-	    if(is_dir($temp)){
-	    	array_push($tempDir, $row);
+		if(is_dir($temp)){
+    		array_push($tempDir, $row);
 	    }else{
 	    	array_push($tempFile, $row);
 	    }
+	    
 	}
 	return array_merge($tempDir, $tempFile);
 }
@@ -166,7 +193,7 @@ function urutDirectory($path, $array){
             <tr>
                 <td>Current Dir</td>
                 <td>:</td>
-                <td><?=getcwd()?></td>
+                <td><?=$linkTag?></td>
             </tr>
 
         </table>
@@ -195,10 +222,11 @@ function urutDirectory($path, $array){
             $dataDir = scandir($dir);
             $dataDir = urutDirectory($dir, $dataDir);
             foreach($dataDir as $entry){
+
             	$tempFile = $dir."/".$entry;
             ?>
                 <tr>
-                    <td><?=is_dir($tempFile)?" <a href='?dir=$dir/$entry'> <span class='glyphicon glyphicon-folder-open' style='color:#FFDD33'></span> $entry</a><br>":'<span class="glyphicon glyphicon-file" style="color:#CCCCCC"></span> '.$entry?></td>
+                    <td><?=is_dir($tempFile)?" <a href='?dir=".($entry==".."?$dirBack:$tempFile)."'> <span class='glyphicon glyphicon-folder-open' style='color:#FFDD33'></span> $entry</a><br>":'<span class="glyphicon glyphicon-file" style="color:#CCCCCC"></span> '.$entry?></td>
                     <td><?=is_dir($tempFile)?'dir':'file'?></td>
                     <td><?=!is_dir($tempFile)?filesize($tempFile):''?></td>
                     <td><?=date("F d Y H:i:s.", filemtime($tempFile))?></td>
