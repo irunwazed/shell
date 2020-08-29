@@ -1,3 +1,8 @@
 # shell
+![](https://codexv.id/front/img/brand/logo-xv.png)
 
-![](https://gyazo.com/eb5c5741b6a9a16c692170a41a49c858.png)
+# Screenshot
+view login
+![](https://irunwazed.codexv.id/Screenshot%20(185).png)
+view backdoor
+![](https://irunwazed.codexv.id/Screenshot%20(186).png)
