@@ -3,6 +3,6 @@
 
 # Screenshot
 view login
-![](https://irunwazed.codexv.id/Screenshot%20(185).png)
+![](https://github.com/irunwazed/shell/blob/master/Screenshot%20(185).png?raw=true)
 view backdoor
-![](https://irunwazed.codexv.id/Screenshot%20(186).png)
+![](https://github.com/irunwazed/shell/blob/master/Screenshot%20(186).png?raw=true)
