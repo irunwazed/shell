@@ -51,29 +51,40 @@ $dirBack = join("/",$dirPecah);
 $dirBack = $dirBack==""?$dirServer:$dirBack;
 // $dirBack = $dirServer.$dirBack;
 
+// load fil in folder
+$dataDir = scandir($dir);
+
 if(@$_POST['action']){
-    if($_POST['action'] == 'setFile'){
-        setFile($_POST['path'], $_POST['text']);
-    }
-    if($_POST['action'] == 'setRename'){
-        setRename($GLOBALS['dir'], $_POST['file'], $_POST['fileNew']);
-    }
-    if($_POST['action'] == 'Upload'){
-	
-        upload();
-    }
+	if($_POST['action'] == 'setFile'){
+		setFile($_POST['path'], $_POST['text']);
+	}
+	if($_POST['action'] == 'setRename'){
+		setRename($GLOBALS['dir'], $_POST['file'], $_POST['fileNew']);
+	}
+	if($_POST['action'] == 'Upload'){
+		upload();
+	}
 }
 
 if(@$_GET['action']){
-    if($_GET['action'] == 'newFolder'){
-        createFolder($GLOBALS['dir'], 'New Folder');
-    }
-    if($_GET['action'] == 'newFile'){
-        createFile($GLOBALS['dir'], 'NewFile.txt');
-    }
-    if($_GET['action'] == 'logout'){
-        logout();
-    }
+	if($_GET['action'] == 'newFolder'){
+		createFolder($GLOBALS['dir'], 'New Folder');
+	}
+	if($_GET['action'] == 'newFile'){
+		createFile($GLOBALS['dir'], 'NewFile.txt');
+	}
+	if($_GET['action'] == 'logout'){
+		logout();
+	}
+}
+
+if(@$_GET['search']){
+	if($_GET['search'] == 'searchStringFromFolder'){
+		$searchFile = [];
+		// echo $GLOBALS['dir'];
+		searchStringFromFolder(@$_GET['searchValue'], @$_GET['searchDir']);
+		$dataDir = $searchFile;
+	}
 }
 
 function upload(){
@@ -146,6 +157,41 @@ function urutDirectory($path, $array){
 	}
 	return array_merge($tempDir, $tempFile);
 }
+
+
+function searchStringFromFolder($_search, $_dir = null){
+	
+	$_dir = $_dir==null?$GLOBALS['dir']:$_dir;
+	$tempDirs = scandir($_dir);
+	$tmpSearch = explode(" ", $_search);
+	// echo $_search;
+	// echo $tmpSearch;
+	
+	// echo "<pre>";
+	// print_r($tmpSearch);
+	// echo "</pre>";
+
+	
+	foreach($tempDirs as $rowDir){
+		if(in_array($rowDir, [".", ".."])){
+			continue;
+		}
+
+		if(!is_dir($_dir.'/'.$rowDir)){
+			$tmpFile = file_get_contents($_dir.'/'.$rowDir);
+			foreach($tmpSearch as $rowSearch){
+				if(strstr($tmpFile, $rowSearch)){
+					array_push($GLOBALS['searchFile'], $_dir.'/'.$rowDir);
+					break;
+				}
+			}
+		}else{
+			searchStringFromFolder($_search, $_dir.'/'.$rowDir);
+		}
+	}
+}
+
+
 
 function viewLogin(){
   ?>
@@ -304,53 +350,63 @@ function logout(){
           </div>
         </div>
         <hr>
-        <form action="?dir=<?=$dir?>" method="post" enctype="multipart/form-data">
-	        <div class="row">
-	        	<input class="col-sm-2" type="file" name="file">
-	        	<input type="submit" name="action" value="Upload">
-	        </div>
-        </form>
+				<div class="row2" style="margin: 20px;">
+					<form action="?dir=<?=$dir?>" method="post" enctype="multipart/form-data">
+						<div class="row">
+							<input class="col-sm-2" type="file" name="file">
+							<input type="submit" name="action" value="Upload">
+						</div>
+					</form>
+					<form action="?dir=<?=$dir?>&search=searchStringFromFolder" method="get">
+						<div class="row">
+							<input type="hidden" name="dir" value="<?=@$_GET['dir']?>" placeholder="Lokasi FIle">
+							<input type="text" name="searchValue" value="<?=@$_GET['searchValue']?>" placeholder="search">
+							<input type="hidden" name="search" value="searchStringFromFolder">
+							<input type="submit" name="action" value="search">
+						</div>
+					</form>
+				</div>
         <br>
         <table style="width:100%" class="my-table">
             <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Type</th>
-                    <th>Size</th>
-                    <th>Last Modified</th>
-                    <th>Owner/Group</th>
-                    <th>Permission</th>
-                    <th>Action</th>
-                </tr>
+							<tr>
+								<th>Name</th>
+								<th>Type</th>
+								<th>Size</th>
+								<th>Last Modified</th>
+								<th>Owner/Group</th>
+								<th>Permission</th>
+								<th>Action</th>
+							</tr>
             </thead>
             <tbody>
             <?php 
-            $dataDir = scandir($dir);
+            // $dataDir = scandir($dir);
             $dataDir = urutDirectory($dir, $dataDir);
             foreach($dataDir as $entry){
 
             	$tempFile = $dir."/".$entry;
             ?>
-                <tr>
-                    <td><?=is_dir($tempFile)?" <a href='?dir=".($entry==".."?$dirBack:$tempFile)."'> <span class='glyphicon glyphicon-folder-open' style='color:#FFDD33'></span> $entry</a><br>":'<span class="glyphicon glyphicon-file" style="color:#CCCCCC"></span> '.$entry?></td>
-                    <td><?=is_dir($tempFile)?'dir':'file'?></td>
-                    <td><?=!is_dir($tempFile)?filesize($tempFile):''?></td>
-                    <td><?=date("F d Y H:i:s.", filemtime($tempFile))?></td>
-                    <td><?=fileowner($tempFile)."/".filegroup($tempFile)?></td>
-                    <td><?=fileperms($tempFile)?></td>
-                    <td>
-                        <?php if(!is_dir($tempFile)){?>
-                        <a href="?dir=<?=$dir?>&edit=<?=$tempFile?>" class="glyphicon glyphicon-edit"></a> | 
-                        <a href="?dir=<?=$dir?>&view=<?=$tempFile?>" class="glyphicon glyphicon-search"></a> | 
-                        <?php }else if($entry == '..' || $entry == '.'){ ?>
-                        <a href="?dir=<?=$dir?>&action=newFolder" > New Folder</a> | 
-                        <a href="?dir=<?=$dir?>&action=newFile" > New File</a> | 
-                        <?php } 
-                        if($entry != '.' && $entry != '..'){ ?>
-                        <a href="?dir=<?=$dir?>&rename=<?=$entry?>"> rename</a>
-                        <?php } ?>
-                    </td>
-                </tr>
+							<tr>
+								<td><?=is_dir($tempFile)?" <a href='?dir=".($entry==".."?$dirBack:$tempFile)."'> <span class='glyphicon glyphicon-folder-open' style='color:#FFDD33'></span> $entry</a><br>":'<span class="glyphicon glyphicon-file" style="color:#CCCCCC"></span> '.$entry?></td>
+								<td><?=is_dir($tempFile)?'dir':'file'?></td>
+								<td><?=!is_dir($tempFile)?filesize($tempFile):''?></td>
+								<td><?=date("F d Y H:i:s.", filemtime($tempFile))?></td>
+								<td><?=fileowner($tempFile)."/".filegroup($tempFile)?></td>
+								<td><?=fileperms($tempFile)?></td>
+								<td>
+										<?php if(!is_dir($tempFile)){?>
+										<a href="?dir=<?=$dir?>&edit=<?=$tempFile?>" class="glyphicon glyphicon-edit"></a> | 
+										<a href="?dir=<?=$dir?>&view=<?=$tempFile?>" class="glyphicon glyphicon-search"></a> | 
+										<?php }else if($entry == '..' || $entry == '.'){ ?>
+										<a href="?dir=<?=$dir?>&action=newFolder" > New Folder</a> | 
+										<a href="?dir=<?=$dir?>&action=newFile" > New File</a> | 
+										<?php } 
+										if($entry != '.' && $entry != '..'){ ?>
+										<a href="?dir=<?=$dir?>&rename=<?=$entry?>"> rename</a>
+										<?php } ?>
+								</td>
+							</tr>
             <?php
             }
             ?>
